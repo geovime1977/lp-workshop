@@ -161,9 +161,7 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
     )
     linha()
 
-    # 7. Exercicio Resolvido
-    titulo("7. Exercicio Resolvido - Calculo Passo a Passo")
-
+    # 7. Exercicio Resolvido — gera figuras antes de abrir nova página
     def _fig_bytes(fig):
         buf = BytesIO()
         fig.savefig(buf, format="png", dpi=120, bbox_inches="tight")
@@ -273,6 +271,7 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
     plt.close(fig_cart)
 
     pdf.add_page()
+    titulo("7. Exercicio Resolvido - Calculo Passo a Passo")
     pdf.image(buf_bar, x=10,  y=pdf.get_y(), w=93)
     pdf.image(buf_pie, x=108, y=pdf.get_y(), w=93)
     pdf.ln(72)
