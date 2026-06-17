@@ -145,8 +145,89 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
     )
     linha()
 
-    # 7. Limitacoes
-    titulo("7. Limitacoes do Modelo")
+    # 7. Exercicio Resolvido
+    titulo("7. Exercicio Resolvido - Calculo Passo a Passo")
+    subtitulo("Passo 1 - Solucao pelo Solver (CBC/Simplex)")
+    for i, c in enumerate(["Soja", "Milho", "Algodao", "Cana-de-Acucar"]):
+        corpo(f"  {c}: {br(qtds[i], 4)} ha")
+    subtitulo("Passo 2 - Funcao Objetivo com valores otimos")
+    corpo(
+        f"Z* = 3.500 x {br(qtds[0],4)}  +  2.300 x {br(qtds[1],4)}  +  "
+        f"4.200 x {br(qtds[2],4)}  +  3.400 x {br(qtds[3],4)}\n"
+        f"Z* = {br(receitas[0])}  +  {br(receitas[1])}  +  {br(receitas[2])}  +  {br(receitas[3])}\n"
+        f"Z* = R$ {br(lucro)}"
+    )
+    subtitulo("Passo 3 - Verificacao das Restricoes")
+    r_t = sum(qtds)
+    r_o = sum(p["custo"][i]*qtds[i] for i in range(4))
+    r_a = sum(p["agua"][i]*qtds[i] for i in range(4))
+    r_m = sum(p["mao_obra"][i]*qtds[i] for i in range(4))
+    corpo(
+        f"R1 Terra:      {br(r_t)} ha  <=  5.000,00 ha  (folga: {br(5000-r_t)} ha)\n"
+        f"R2 Orcamento:  R$ {br(r_o)}  <=  R$ 20.000.000,00  ATIVA (folga zero)\n"
+        f"R3 Agua:       {br(r_a)} m3  <=  4.000.000,00 m3  (folga: {br(4_000_000-r_a)} m3)\n"
+        f"R4 Mao Obra:   {br(r_m)} hh  <=  60.000,00 hh  ATIVA (folga zero)\n"
+        f"R5 Demanda:    x1={br(qtds[0],4)} x2={br(qtds[1],4)} x3={br(qtds[2],4)} x4={br(qtds[3],4)}"
+    )
+    linha()
+
+    # 8. Resolucao Manual
+    titulo("8. Resolucao Manual - Passo a Passo")
+    corpo(
+        "Em PL a solucao otima sempre ocorre em um vertice da regiao viavel.\n"
+        "Com 4 variaveis precisamos de 4 restricoes ativas para identificar o vertice otimo."
+    )
+    subtitulo("Passo 1 - Restricoes ativas identificadas")
+    corpo(
+        "R2 - Orcamento (100% consumido)\n"
+        "R4 - Mao de Obra (100% consumida)\n"
+        "R5 - Demanda Soja: x1 = 2.500 ha (no limite)\n"
+        "R5 - Demanda Cana: x4 = 1.000 ha (no limite)"
+    )
+    subtitulo("Passo 2 - Fixar variaveis e obter sistema 2x2")
+    corpo(
+        "x1 = 2.500 ha (Soja - limite de demanda)  |  x4 = 1.000 ha (Cana - limite de demanda)\n\n"
+        "Substituindo em R2:\n"
+        "  4.500(2.500) + 3.200*x2 + 6.000*x3 + 2.800(1.000) = 20.000.000\n"
+        "  3.200*x2 + 6.000*x3 = 5.950.000  ...(I)\n\n"
+        "Substituindo em R4:\n"
+        "  12(2.500) + 15*x2 + 22*x3 + 8(1.000) = 60.000\n"
+        "  15*x2 + 22*x3 = 22.000  ...(II)"
+    )
+    subtitulo("Passo 3 - Resolver sistema 2x2 por substituicao")
+    corpo(
+        "De (II):  x2 = (22.000 - 22*x3) / 15  ...(III)\n\n"
+        "Substituindo (III) em (I):\n"
+        "  3.200 * (22.000 - 22*x3)/15 + 6.000*x3 = 5.950.000\n"
+        "  4.693.333,33 - 4.693,33*x3 + 6.000*x3 = 5.950.000\n"
+        "  1.306,67 * x3 = 1.256.666,67\n"
+        "  x3 = 961,73 ha (Algodao)\n\n"
+        "De (III):  x2 = (22.000 - 22 * 961,73) / 15 = 841,94 / 15 = 56,12 ha (Milho)"
+    )
+    subtitulo("Passo 4 - Calcular Z*")
+    x1r, x2r, x3r, x4r = 2500, 56.12, 961.73, 1000
+    p1m = 3500*x1r; p2m = 2300*x2r; p3m = 4200*x3r; p4m = 3400*x4r
+    z_m = p1m + p2m + p3m + p4m
+    corpo(
+        f"Z* = 3.500 x {br(x1r,4)}  +  2.300 x {br(x2r,4)}  +  "
+        f"4.200 x {br(x3r,4)}  +  3.400 x {br(x4r,4)}\n"
+        f"Z* = {br(p1m,0)}  +  {br(p2m,0)}  +  {br(p3m,0)}  +  {br(p4m,0)}\n"
+        f"Z* = R$ {br(z_m,0)}"
+    )
+    subtitulo("Passo 5 - Verificar todas as restricoes")
+    r_t2 = x1r + x2r + x3r + x4r
+    r_a2 = 600*x1r + 800*x2r + 500*x3r + 1500*x4r
+    corpo(
+        f"R1 Terra:      {br(r_t2)} ha  <=  5.000,00 ha  OK\n"
+        "R2 Orcamento:  ~R$ 20.000.000,00  <=  R$ 20.000.000,00  ATIVA\n"
+        f"R3 Agua:       {br(r_a2,0)} m3  <=  4.000.000,00 m3  OK\n"
+        "R4 Mao Obra:   ~60.000,00 hh  <=  60.000,00 hh  ATIVA\n"
+        f"R5 Demanda:    x1={br(x1r,0)} x2={br(x2r,4)} x3={br(x3r,4)} x4={br(x4r,0)}  OK"
+    )
+    linha()
+
+    # 9. Limitacoes
+    titulo("9. Limitacoes do Modelo")
     corpo(
         "Sazonalidade ignorada:\n"
         "  - Soja e Milho: ciclo anual (~4 meses)\n"
