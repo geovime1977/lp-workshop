@@ -21,6 +21,14 @@ st.sidebar.markdown("""
 - Solver Interativo (Etapa III)
 - Resultados e Slides
 """)
+st.sidebar.markdown("---")
+st.sidebar.markdown("""
+**Projeto**
+Prof. Gabriel Capela — BSBr
+Entrega: 20/06/2026 · Porta: 8505
+
+[Repositório GitHub](https://github.com/geovime1977/lp-workshop)
+""")
 
 st.title("Otimização do Mix de Culturas")
 st.caption("Cooperativa AgroPrime — Programação Linear Aplicada ao Agronegócio")
@@ -45,3 +53,49 @@ culturas_info = [
 for col, (nome, margem, demanda) in zip([col1, col2, col3, col4], culturas_info):
     with col:
         st.info(f"**{nome}**\nMargem: {margem}\nDemanda: {demanda}")
+
+st.divider()
+
+with st.expander("Sobre o Projeto", expanded=False):
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.markdown("""
+**AgroPrime LP**
+App Streamlit de Programação Linear desenvolvido para o workshop do MBA em Pesquisa Operacional.
+
+**Prof. Gabriel Capela — BSBr**
+Entrega: 20/06/2026
+
+---
+
+**Problema**
+Cooperativa AgroPrime precisa decidir quantos hectares alocar entre Soja, Milho, Algodão e
+Cana-de-Açúcar para maximizar margem de contribuição, respeitando restrições de:
+- Área: 5.000 ha
+- Orçamento: R$ 20.000.000
+- Água: 4.000.000 m³
+- Mão de obra: 60.000 hh
+""")
+    with col_b:
+        st.markdown("""
+**Stack**
+Python · Streamlit · PuLP · NumPy · Pandas · Matplotlib · python-pptx · fpdf2
+
+**Módulos (6 páginas)**
+
+| Página | Conteúdo |
+|---|---|
+| Tutorial | Guia de uso + conceitos LP |
+| Contextualização | Dados da AgroPrime |
+| Modelagem Matemática | Função objetivo + restrições |
+| Solver Interativo | PuLP + análise de sensibilidade |
+| Resultados e Slides | PPTX 12 slides + PDF modelagem |
+| Método Gráfico | Visualização 2D região viável |
+
+**Como rodar**
+```
+cd ~/projetos/lp-workshop
+.venv/bin/streamlit run app.py --server.port 8505
+```
+[github.com/geovime1977/lp-workshop](https://github.com/geovime1977/lp-workshop)
+""")
