@@ -338,22 +338,23 @@ def gerar_pptx(resultado: dict) -> bytes:
     s = _slide(prs)
     _header(s, "Agenda")
     itens = [
-        ("I",  "Contextualização", "Empresa, problema e objetivo de negócio"),
-        ("II", "Modelagem Matemática", "Variáveis, função objetivo e restrições"),
-        ("III","Solução Computacional", "Python / PuLP — código e resultados"),
-        ("IV", "Cálculos e Verificação", "Prova da solução ótima passo a passo"),
-        ("V",  "Visualizações", "Gráficos de alocação, receita e uso de recursos"),
-        ("VI", "Conclusão", "Insights e aplicabilidade para cooperativas brasileiras"),
+        ("I",   "Contextualização",      "Empresa, problema e objetivo de negócio"),
+        ("II",  "Modelagem Matemática",  "Variáveis, função objetivo e restrições"),
+        ("III", "Solução Computacional", "Python / PuLP — código e resultados"),
+        ("IV",  "Resolução Manual",      "Sistema 2×2 — identificar ativas e resolver por substituição"),
+        ("V",   "Cálculos e Verificação","Prova da solução ótima passo a passo"),
+        ("VI",  "Visualizações",         "Gráficos de alocação, receita e uso de recursos"),
+        ("VII", "Conclusão",             "Insights e aplicabilidade para cooperativas brasileiras"),
     ]
     for i, (num, titulo, desc) in enumerate(itens):
-        top = Inches(1.4) + Inches(0.9) * i
-        _rect(s, M, top, Inches(0.55), Inches(0.6), VERDE)
-        _txt(s, M + Inches(0.05), top + Inches(0.08), Inches(0.45), Inches(0.5),
-             num, size=15, bold=True, color=AMARELO, align=PP_ALIGN.CENTER)
-        _txt(s, Inches(1.2), top + Inches(0.02), Inches(4.0), Inches(0.35),
-             titulo, size=17, bold=True, color=BRANCO)
-        _txt(s, Inches(1.2), top + Inches(0.35), Inches(11.5), Inches(0.35),
-             desc, size=13, color=VERDE_CLARO)
+        top = Inches(1.3) + Inches(0.74) * i
+        _rect(s, M, top, Inches(0.6), Inches(0.55), VERDE)
+        _txt(s, M + Inches(0.04), top + Inches(0.06), Inches(0.52), Inches(0.45),
+             num, size=13, bold=True, color=AMARELO, align=PP_ALIGN.CENTER)
+        _txt(s, Inches(1.2), top + Inches(0.01), Inches(4.5), Inches(0.32),
+             titulo, size=15, bold=True, color=BRANCO)
+        _txt(s, Inches(1.2), top + Inches(0.30), Inches(11.5), Inches(0.32),
+             desc, size=12, color=VERDE_CLARO)
 
     # ── S3 Contextualização ────────────────────────────────────────────
     s = _slide(prs)
@@ -544,7 +545,57 @@ def gerar_pptx(resultado: dict) -> bytes:
     _txt(s, M + Inches(0.15), Inches(1.35), CW - Inches(0.25), Inches(5.6),
          codigo, size=12, color=VERDE_CLARO)
 
-    # ── S8 Cálculos ────────────────────────────────────────────────────
+    # ── S8 Cálculo Manual ─────────────────────────────────────────────
+    s = _slide(prs)
+    _header(s, "Etapa IV — Resolução Manual",
+            "Identificar restrições ativas → montar sistema 2×2 → resolver por substituição")
+
+    # Passo 1 — variáveis fixadas
+    _txt(s, M, Inches(1.3), CW, Inches(0.38),
+         "Passo 1 — Restrições ativas identificadas", size=15, bold=True, color=AMARELO)
+    ativas = [
+        "R2 Orçamento: 100% consumido  →  restrição ativa",
+        "R4 Mão de Obra: 100% consumida  →  restrição ativa",
+        "R5 Demanda Soja: x₁ = 2.500 ha  →  no limite",
+        "R5 Demanda Cana: x₄ = 1.000 ha  →  no limite",
+    ]
+    for i, txt in enumerate(ativas):
+        _txt(s, M + Inches(0.3), Inches(1.72) + Inches(0.32)*i,
+             CW, Inches(0.3), f"• {txt}", size=12, color=BRANCO)
+
+    # Passo 2 — sistema reduzido
+    _txt(s, M, Inches(3.05), CW, Inches(0.38),
+         "Passo 2 — Sistema reduzido (x₁ = 2.500 e x₄ = 1.000 fixados)", size=15, bold=True, color=AMARELO)
+    _rect(s, M, Inches(3.45), CW, Inches(0.85), CINZA_ESCURO)
+    _txt(s, M + Inches(0.2), Inches(3.52), CW - Inches(0.3), Inches(0.36),
+         "R2:  3.200 x₂ + 6.000 x₃  =  20.000.000 − 11.250.000 − 2.800.000  =  5.950.000  …(I)",
+         size=13, color=VERDE_CLARO)
+    _txt(s, M + Inches(0.2), Inches(3.88), CW - Inches(0.3), Inches(0.36),
+         "R4:       15 x₂ +    22 x₃  =  60.000 − 30.000 − 8.000  =  22.000  …(II)",
+         size=13, color=VERDE_CLARO)
+
+    # Passo 3 — resolução
+    _txt(s, M, Inches(4.45), CW, Inches(0.38),
+         "Passo 3 — Resolução por substituição", size=15, bold=True, color=AMARELO)
+    _rect(s, M, Inches(4.85), CW, Inches(1.55), CINZA_ESCURO)
+    passos = [
+        "De (II):  x₂ = (22.000 − 22 x₃) / 15  …(III)",
+        "Subst. (III) em (I):  4.693.333,33 − 4.693,33 x₃ + 6.000 x₃  =  5.950.000",
+        "                      1.306,67 x₃  =  1.256.666,67   →   x₃  ≈  961,73 ha  (Algodão)  ✓",
+        "Subst. x₃ em (III):   x₂  =  (22.000 − 21.158,06) / 15  =  841,94 / 15  ≈  56,12 ha  (Milho)  ✓",
+    ]
+    for i, txt in enumerate(passos):
+        _txt(s, M + Inches(0.2), Inches(4.92) + Inches(0.35)*i,
+             CW - Inches(0.3), Inches(0.32),
+             txt, size=12, color=BRANCO if i < 2 else AMARELO)
+
+    # Resultado final
+    _rect(s, M, Inches(6.5), CW, Inches(0.68), VERDE)
+    _txt(s, M + Inches(0.2), Inches(6.56), CW, Inches(0.55),
+         f"Z* = 3.500×2.500 + 2.300×56,12 + 4.200×961,73 + 3.400×1.000  ≈  R$ {br(lucro, 0)}",
+         size=15, bold=True, color=AMARELO, align=PP_ALIGN.CENTER)
+
+    # ── S9 Cálculos ────────────────────────────────────────────────────
     s = _slide(prs)
     _header(s, "Cálculos — Verificação da Solução Ótima",
             "Substituindo x* na Função Objetivo e nas Restrições")

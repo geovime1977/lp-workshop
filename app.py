@@ -19,6 +19,7 @@ st.sidebar.markdown("""
 - Contextualização (Etapa I)
 - Modelagem Matemática (Etapa II)
 - Solver Interativo (Etapa III)
+- Cálculo Manual (Etapa IV)
 - Resultados e Slides
 """)
 st.sidebar.markdown("---")
