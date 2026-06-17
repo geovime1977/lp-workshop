@@ -206,7 +206,70 @@ def gerar_pptx(resultado: dict) -> bytes:
          "Prof. Gabriel Capela   |   Workshop — Jun/2026   |   Etapas I, II e III",
          size=13, color=BRANCO, align=PP_ALIGN.CENTER)
 
-    # ── S2 Agenda ──────────────────────────────────────────────────────
+    # ── S2 Sobre a Ferramenta ─────────────────────────────────────────
+    s = _slide(prs)
+    _header(s, "AgroPrime LP — Sobre a Ferramenta",
+            "App Streamlit · MBA em PO · Prof. Gabriel Capela — BSBr · Entrega: 20/06/2026")
+
+    col1_w = Inches(6.2)
+    col2_x = Inches(7.0)
+    col2_w = W - col2_x - M
+
+    _txt(s, M, Inches(1.3), col1_w, Inches(0.4),
+         "Descrição", size=15, bold=True, color=AMARELO)
+    _txt(s, M, Inches(1.72), col1_w, Inches(1.0),
+         "App Streamlit de Programação Linear desenvolvido para o workshop do "
+         "MBA em Pesquisa Operacional (Prof. Gabriel Capela — BSBr).",
+         size=13, color=BRANCO)
+
+    _txt(s, M, Inches(2.82), col1_w, Inches(0.4),
+         "Problema", size=15, bold=True, color=AMARELO)
+    _txt(s, M, Inches(3.22), col1_w, Inches(1.5),
+         "Cooperativa AgroPrime precisa decidir quantos hectares alocar entre Soja, "
+         "Milho, Algodão e Cana-de-Açúcar para maximizar margem de contribuição "
+         "respeitando restrições de área (5.000 ha), orçamento (R$ 20M), "
+         "água (4M m³) e mão de obra (60.000 hh).",
+         size=13, color=BRANCO)
+
+    _txt(s, M, Inches(4.85), col1_w, Inches(0.4),
+         "Stack", size=15, bold=True, color=AMARELO)
+    _txt(s, M, Inches(5.25), col1_w, Inches(0.45),
+         "Python · Streamlit · PuLP · NumPy · Pandas · Matplotlib · python-pptx · fpdf2",
+         size=12, color=VERDE_CLARO)
+
+    _txt(s, M, Inches(5.82), col1_w, Inches(0.4),
+         "Acesso", size=15, bold=True, color=AMARELO)
+    for i, line in enumerate([
+        "Repositório: github.com/geovime1977/lp-workshop",
+        "Porta: 8505  |  Backup: onedrive-eixoestrategico10:projetos/lp-workshop",
+    ]):
+        _txt(s, M, Inches(6.22) + Inches(0.34)*i, col1_w, Inches(0.32),
+             line, size=11, color=VERDE_CLARO)
+
+    _rect(s, col2_x, Inches(1.25), col2_w, Inches(0.5), VERDE)
+    _txt(s, col2_x + Inches(0.1), Inches(1.3), col2_w, Inches(0.45),
+         "Módulos (6 páginas)", size=14, bold=True, color=AMARELO)
+
+    modulos = [
+        ("Tutorial",             "Guia de uso + conceitos LP"),
+        ("Contextualização",     "Dados da AgroPrime"),
+        ("Modelagem Matemática", "Função objetivo + restrições"),
+        ("Solver Interativo",    "PuLP + análise de sensibilidade"),
+        ("Resultados e Slides",  "PPTX 12 slides + PDF modelagem"),
+        ("Método Gráfico",       "Visualização 2D região viável"),
+    ]
+    bgs_mod = [CINZA_ESCURO, RGBColor(0x0F, 0x22, 0x14)] * 3
+    for i, (nome, desc) in enumerate(modulos):
+        top = Inches(1.78) + Inches(0.88)*i
+        _rect(s, col2_x, top, col2_w, Inches(0.82), bgs_mod[i])
+        _txt(s, col2_x + Inches(0.1), top + Inches(0.04),
+             col2_w - Inches(0.2), Inches(0.35),
+             nome, size=12, bold=True, color=VERDE_CLARO)
+        _txt(s, col2_x + Inches(0.1), top + Inches(0.42),
+             col2_w - Inches(0.2), Inches(0.35),
+             desc, size=11, color=BRANCO, italic=True)
+
+    # ── S3 Agenda ──────────────────────────────────────────────────────
     s = _slide(prs)
     _header(s, "Agenda")
     itens = [
