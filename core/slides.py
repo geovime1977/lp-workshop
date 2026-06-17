@@ -562,7 +562,7 @@ def gerar_pptx(resultado: dict) -> bytes:
          "Cálculo da Função Objetivo:", size=15, bold=True, color=AMARELO)
     _rect(s, M, Inches(2.8), CW, Inches(2.2), CINZA_ESCURO)
     calculo = (
-        f"Z* = 3.500 × {br(qtds[0])}  +  2.300 × {br(qtds[1])}  +  4.200 × {br(qtds[2])}  +  3.400 × {br(qtds[3])}\n\n"
+        f"Z* = 3.500 × {br(qtds[0], 4)}  +  2.300 × {br(qtds[1], 4)}  +  4.200 × {br(qtds[2], 4)}  +  3.400 × {br(qtds[3], 4)}\n\n"
         f"Z* = {br(receitas[0], 0)}  +  {br(receitas[1], 0)}  +  {br(receitas[2], 0)}  +  {br(receitas[3], 0)}\n\n"
         f"Z* =  R$ {br(lucro, 0)}"
     )
@@ -775,7 +775,7 @@ def gerar_pptx(resultado: dict) -> bytes:
          size=16, color=VERDE_CLARO, align=PP_ALIGN.CENTER)
 
     insights = [
-        "Algodão e Soja dominam o portfólio pela maior margem por hectare",
+        "Soja e Cana dominam a alocação — Soja pelo volume (limite de demanda), Cana pela melhor eficiência de custo e mão de obra",
         "Orçamento e Mão de Obra são os gargalos — ampliar esses recursos aumenta o lucro",
         "O modelo é replicável para qualquer cooperativa agrícola real",
     ]
