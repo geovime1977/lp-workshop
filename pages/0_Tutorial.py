@@ -788,7 +788,7 @@ st.markdown("**Passo 2 — Substituição na Função Objetivo:**")
 st.code(f"""
 Z* = 3.500 × x₁  +  2.300 × x₂  +  4.200 × x₃  +  3.400 × x₄
 
-Z* = 3.500 × {br(qtds[0])}  +  2.300 × {br(qtds[1])}  +  4.200 × {br(qtds[2])}  +  3.400 × {br(qtds[3])}
+Z* = 3.500 × {br(qtds[0], 4)}  +  2.300 × {br(qtds[1], 4)}  +  4.200 × {br(qtds[2], 4)}  +  3.400 × {br(qtds[3], 4)}
 
 Z* = {br(receitas[0])}  +  {br(receitas[1])}  +  {br(receitas[2])}  +  {br(receitas[3])}
 
@@ -803,18 +803,18 @@ r_agua     = sum(p["agua"][i]*qtds[i] for i in range(4))
 r_mo       = sum(p["mao_obra"][i]*qtds[i] for i in range(4))
 
 st.code(f"""
-R1 Terra:      {br(qtds[0])} + {br(qtds[1])} + {br(qtds[2])} + {br(qtds[3])} = {br(r_terra)} ha  ≤  5.000,00 ha  ✓  (folga: {br(5000-r_terra)} ha)
+R1 Terra:      {br(qtds[0], 4)} + {br(qtds[1], 4)} + {br(qtds[2], 4)} + {br(qtds[3], 4)} = {br(r_terra)} ha  ≤  5.000,00 ha  ✓  (folga: {br(5000-r_terra)} ha)
 
-R2 Orçamento:  4.500×{br(qtds[0])} + 3.200×{br(qtds[1])} + 6.000×{br(qtds[2])} + 2.800×{br(qtds[3])}
+R2 Orçamento:  4.500×{br(qtds[0], 4)} + 3.200×{br(qtds[1], 4)} + 6.000×{br(qtds[2], 4)} + 2.800×{br(qtds[3], 4)}
              = R$ {br(r_orc)}  ≤  R$ 20.000.000,00  ✓  ★ ATIVA (folga zero)
 
-R3 Água:       600×{br(qtds[0])} + 800×{br(qtds[1])} + 500×{br(qtds[2])} + 1.500×{br(qtds[3])}
+R3 Água:       600×{br(qtds[0], 4)} + 800×{br(qtds[1], 4)} + 500×{br(qtds[2], 4)} + 1.500×{br(qtds[3], 4)}
              = {br(r_agua)} m³  ≤  4.000.000,00 m³  ✓  (folga: {br(4_000_000-r_agua)} m³)
 
-R4 Mão de Obra: 12×{br(qtds[0])} + 15×{br(qtds[1])} + 22×{br(qtds[2])} + 8×{br(qtds[3])}
+R4 Mão de Obra: 12×{br(qtds[0], 4)} + 15×{br(qtds[1], 4)} + 22×{br(qtds[2], 4)} + 8×{br(qtds[3], 4)}
               = {br(r_mo)} hh  ≤  60.000,00 hh  ✓  ★ ATIVA (folga zero)
 
-R5 Demanda:    x₁={br(qtds[0])}≤2.500  x₂={br(qtds[1])}≤2.000  x₃={br(qtds[2])}≤1.500  x₄={br(qtds[3])}≤1.000  ✓
+R5 Demanda:    x₁={br(qtds[0], 4)}≤2.500  x₂={br(qtds[1], 4)}≤2.000  x₃={br(qtds[2], 4)}≤1.500  x₄={br(qtds[3], 4)}≤1.000  ✓
 """, language=None)
 
 st.success(f"""
