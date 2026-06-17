@@ -270,11 +270,13 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
     buf_cart = _fig_bytes(fig_cart)
     plt.close(fig_cart)
 
-    pdf.add_page()
+    if pdf.get_y() > 50:
+        pdf.add_page()
     titulo("7. Exercicio Resolvido - Calculo Passo a Passo")
-    pdf.image(buf_bar, x=10,  y=pdf.get_y(), w=93)
-    pdf.image(buf_pie, x=108, y=pdf.get_y(), w=93)
-    pdf.ln(72)
+    y0 = pdf.get_y()
+    pdf.image(buf_bar, x=10,  y=y0, w=90)
+    pdf.image(buf_pie, x=105, y=y0, w=90)
+    pdf.ln(68)
     pdf.image(buf_cart, x=10, w=190)
     pdf.ln(4)
     linha()
