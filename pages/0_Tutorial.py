@@ -188,10 +188,80 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
     buf_pie = _fig_bytes(fig_pie)
     plt.close(fig_pie)
 
+    x2_fix, x4_fix = qtds[1], qtds[3]
+    terra_adj = 5000       - x2_fix      - x4_fix
+    orc_adj   = 20_000_000 - 3200*x2_fix - 2800*x4_fix
+    mo_adj    = 60_000     - 15*x2_fix   - 8*x4_fix
+    dem1, dem3 = 2500.0, 1500.0
+    x_max, y_max = 2700.0, 1600.0
+    xv = np.linspace(0, x_max, 1000)
+
+    fig_cart, ax_c = plt.subplots(figsize=(9, 5.5), facecolor="#0A1A0D")
+    ax_c.set_facecolor("#0F1F12")
+    ax_c.plot(xv, terra_adj - xv,           color="#52B788", lw=2,   label="Terra")
+    ax_c.plot(xv, (orc_adj - 4500*xv)/6000, color="#F4D03F", lw=2.5, label="Orcamento (gargalo)")
+    ax_c.plot(xv, (mo_adj - 12*xv)/22,      color="#E74C3C", lw=2.5, label="Mao de Obra (gargalo)")
+    ax_c.axvline(dem1, color="#95D5B2", lw=1.8, ls="--", label="Dem. Soja <= 2.500 ha")
+    ax_c.axhline(dem3, color="#AED6F1", lw=1.8, ls="--", label="Dem. Algodao <= 1.500 ha")
+    xs = np.linspace(0, x_max, 3000)
+    y_up = np.minimum(np.minimum(terra_adj - xs, (orc_adj - 4500*xs)/6000),
+                      np.minimum((mo_adj - 12*xs)/22, dem3))
+    y_up = np.clip(y_up, 0, y_max)
+    ax_c.fill_between(xs[xs <= dem1], 0, y_up[xs <= dem1],
+                      alpha=0.20, color="#52B788", label="Regiao viavel")
+    Z_opt = 3500*qtds[0] + 4200*qtds[2]
+    for frac in [0.5, 0.75, 1.0]:
+        Z = Z_opt * frac
+        ax_c.plot(xv, (Z - 3500*xv)/4200,
+                  color="#BDC3C7", lw=2.0 if frac == 1.0 else 0.8,
+                  ls="-" if frac == 1.0 else ":",
+                  alpha=0.9 if frac == 1.0 else 0.5,
+                  label=f"Isolucro R$ {Z/1e6:.1f}M" if frac == 1.0 else None)
+    eps = 0.5
+    verts_c = []
+    try:
+        pv = np.linalg.solve([[4500, 6000], [12, 22]], [orc_adj, mo_adj])
+        if -eps <= pv[0] <= dem1+eps and -eps <= pv[1] <= dem3+eps:
+            verts_c.append((pv[0], pv[1]))
+    except Exception:
+        pass
+    x3_d1 = (mo_adj - 12*dem1) / 22
+    if -eps <= x3_d1 <= dem3+eps:
+        verts_c.append((dem1, x3_d1))
+    seen_c = set()
+    for vx, vy in verts_c:
+        k = (round(vx), round(vy))
+        if k not in seen_c:
+            seen_c.add(k)
+            ax_c.scatter(vx, vy, color="white", s=60, zorder=5, edgecolors="#AAAAAA", lw=0.8)
+    ax_c.scatter(qtds[0], qtds[2], color="#F4D03F", s=260, zorder=10, marker="*",
+                 label=f"Otimo ({qtds[0]:.0f}, {qtds[2]:.2f})")
+    ax_c.annotate(f"Otimo\n({qtds[0]:.0f}, {qtds[2]:.2f})",
+                  xy=(qtds[0], qtds[2]),
+                  xytext=(qtds[0]-600, qtds[2]-280),
+                  color="#F4D03F", fontsize=9, fontweight="bold",
+                  bbox=dict(boxstyle="round,pad=0.3", facecolor="#0A1A0D", edgecolor="#F4D03F", alpha=0.9),
+                  arrowprops=dict(arrowstyle="->", color="#F4D03F", lw=1.5))
+    ax_c.set_xlim(0, x_max); ax_c.set_ylim(0, y_max)
+    ax_c.set_xlabel("x1 - Soja (ha)", color="white", fontsize=11)
+    ax_c.set_ylabel("x3 - Algodao (ha)", color="white", fontsize=11)
+    ax_c.set_title("Regiao Viavel e Ponto Otimo (projecao 2D)", color="white", fontsize=12, fontweight="bold")
+    ax_c.tick_params(colors="white", labelsize=9)
+    for sp in ax_c.spines.values():
+        sp.set_edgecolor("#2D6A4F")
+    handles_c, labels_c = ax_c.get_legend_handles_labels()
+    fig_cart.legend(handles_c, labels_c, loc="lower center", bbox_to_anchor=(0.5, 0.01),
+                    ncols=4, fontsize=8, facecolor="#1A2E1D", labelcolor="white", edgecolor="#2D6A4F")
+    fig_cart.subplots_adjust(bottom=0.20, top=0.95)
+    buf_cart = _fig_bytes(fig_cart)
+    plt.close(fig_cart)
+
     pdf.add_page()
     pdf.image(buf_bar, x=10, w=130)
     pdf.ln(4)
     pdf.image(buf_pie, x=50, w=110)
+    pdf.add_page()
+    pdf.image(buf_cart, x=10, w=190)
     pdf.ln(4)
     linha()
 
