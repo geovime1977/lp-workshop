@@ -281,7 +281,60 @@ def gerar_pptx(resultado: dict) -> bytes:
              col2_w - Inches(0.2), Inches(0.38),
              desc, size=11, color=BRANCO, italic=True)
 
-    # ── S3 Agenda ──────────────────────────────────────────────────────
+    # ── S3 Pipeline ────────────────────────────────────────────────────
+    s = _slide(prs)
+    _header(s, "Pipeline da Solução",
+            "Fluxo de processamento — da interface ao entregável final")
+
+    stages = [
+        ("INTERFACE",    "Streamlit",         VERDE,       BRANCO,      "Coleta parâmetros\ndo usuário"),
+        ("INTELIGÊNCIA", "PuLP (Solver LP)",  VERDE_MED,   BRANCO,      "Resolve o modelo LP\nvia Simplex / CBC"),
+        ("SUPORTE",      "Pandas & NumPy",    VERDE_CLARO, PRETO_VERDE, "Processa e formata\nos resultados"),
+        ("ENTREGA",      "PDF & PPTX",        AMARELO,     PRETO_VERDE, "Gera os relatórios\nexportáveis"),
+    ]
+
+    box_w   = Inches(2.3)
+    box_h   = Inches(2.7)
+    arr_w   = Inches(0.75)
+    total_w = 4 * box_w + 3 * arr_w
+    start_x = (W - total_w) / 2
+    box_top = Inches(2.1)
+
+    for i, (stage, tech, bg, fg, desc) in enumerate(stages):
+        bx = start_x + i * (box_w + arr_w)
+
+        _rect(s, bx, box_top, box_w, box_h, bg)
+
+        _txt(s, bx, box_top + Inches(0.18), box_w, Inches(0.48),
+             stage, size=15, bold=True, color=fg, align=PP_ALIGN.CENTER)
+
+        div_color = BRANCO if i < 2 else CINZA_ESCURO
+        _rect(s, bx + Inches(0.2), box_top + Inches(0.74),
+              box_w - Inches(0.4), Inches(0.03), div_color)
+
+        _txt(s, bx, box_top + Inches(0.85), box_w, Inches(0.55),
+             tech, size=14, bold=True, color=fg, align=PP_ALIGN.CENTER)
+
+        _txt(s, bx, box_top + Inches(1.5), box_w, Inches(0.85),
+             desc, size=11, color=fg, align=PP_ALIGN.CENTER, italic=True)
+
+        if i < 3:
+            ax = bx + box_w
+            cy = box_top + box_h / 2
+            arr = s.shapes.add_shape(
+                13,
+                ax + Inches(0.05), cy - Inches(0.22),
+                arr_w - Inches(0.1), Inches(0.44),
+            )
+            arr.fill.solid()
+            arr.fill.fore_color.rgb = AMARELO
+            arr.line.fill.background()
+
+    _txt(s, M, Inches(5.1), CW, Inches(0.4),
+         "Cada camada é independente: o solver pode ser trocado sem alterar a interface ou os entregáveis.",
+         size=13, color=VERDE_CLARO, align=PP_ALIGN.CENTER, italic=True)
+
+    # ── S4 Agenda ──────────────────────────────────────────────────────
     s = _slide(prs)
     _header(s, "Agenda")
     itens = [
