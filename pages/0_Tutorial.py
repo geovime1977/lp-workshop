@@ -273,10 +273,9 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
     plt.close(fig_cart)
 
     pdf.add_page()
-    pdf.image(buf_bar, x=10, w=130)
-    pdf.ln(4)
-    pdf.image(buf_pie, x=50, w=110)
-    pdf.add_page()
+    pdf.image(buf_bar, x=10,  y=pdf.get_y(), w=93)
+    pdf.image(buf_pie, x=108, y=pdf.get_y(), w=93)
+    pdf.ln(72)
     pdf.image(buf_cart, x=10, w=190)
     pdf.ln(4)
     linha()
