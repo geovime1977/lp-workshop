@@ -147,6 +147,54 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
 
     # 7. Exercicio Resolvido
     titulo("7. Exercicio Resolvido - Calculo Passo a Passo")
+
+    def _fig_bytes(fig):
+        buf = BytesIO()
+        fig.savefig(buf, format="png", dpi=120, bbox_inches="tight")
+        buf.seek(0)
+        return buf
+
+    culturas_nomes4 = ["Soja", "Milho", "Algodao", "Cana"]
+
+    fig_bar, ax_bar = plt.subplots(figsize=(8, 3.5), facecolor="#0A1A0D")
+    ax_bar.set_facecolor("#1A2E1D")
+    bars = ax_bar.bar(culturas_nomes4, qtds,
+                      color=["#52B788", "#95D5B2", "#2D6A4F", "#F4D03F"],
+                      edgecolor="#0A1A0D", linewidth=0.5)
+    for bar, q in zip(bars, qtds):
+        ax_bar.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 5,
+                    f"{br(q)} ha", ha="center", va="bottom", color="white", fontsize=9)
+    ax_bar.set_ylabel("Hectares", color="white")
+    ax_bar.tick_params(colors="white", labelsize=9)
+    ax_bar.set_title("Alocacao Otima de Hectares", color="white", fontsize=11)
+    for sp in ax_bar.spines.values():
+        sp.set_edgecolor("#2D6A4F")
+    plt.tight_layout()
+    buf_bar = _fig_bytes(fig_bar)
+    plt.close(fig_bar)
+
+    fig_pie, ax_pie = plt.subplots(figsize=(6, 4), facecolor="#0A1A0D")
+    ax_pie.set_facecolor("#0A1A0D")
+    wedges, texts, autotexts = ax_pie.pie(
+        receitas, labels=culturas_nomes4, autopct="%1.1f%%",
+        colors=["#52B788", "#95D5B2", "#2D6A4F", "#F4D03F"],
+        textprops={"color": "white", "fontsize": 10},
+        pctdistance=0.75, wedgeprops={"edgecolor": "#0A1A0D", "linewidth": 1.5}
+    )
+    for at in autotexts:
+        at.set_color("white"); at.set_fontsize(9)
+    ax_pie.set_title("Participacao na Receita Total", color="white", fontsize=11)
+    plt.tight_layout()
+    buf_pie = _fig_bytes(fig_pie)
+    plt.close(fig_pie)
+
+    pdf.add_page()
+    pdf.image(buf_bar, x=10, w=130)
+    pdf.ln(4)
+    pdf.image(buf_pie, x=50, w=110)
+    pdf.ln(4)
+    linha()
+
     subtitulo("Passo 1 - Solucao pelo Solver (CBC/Simplex)")
     for i, c in enumerate(["Soja", "Milho", "Algodao", "Cana-de-Acucar"]):
         corpo(f"  {c}: {br(qtds[i], 4)} ha")
