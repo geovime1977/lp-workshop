@@ -78,6 +78,22 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
 
     # 3. O modelo
     titulo("3. O Modelo Matematico")
+    subtitulo("Parametros das Culturas")
+    corpo(
+        f"{'Cultura':<18} {'Margem':>10} {'Custo':>10} {'Agua':>10} {'MO':>6} {'Dem.Max':>8} {'M/Custo':>8} {'M/MO':>6}\n"
+        + "-" * 80 + "\n"
+        + "\n".join(
+            f"{['Soja','Milho','Algodao','Cana'][i]:<18}"
+            f" {p['margem'][i]:>10,.0f}"
+            f" {p['custo'][i]:>10,.0f}"
+            f" {p['agua'][i]:>10,.0f}"
+            f" {p['mao_obra'][i]:>6}"
+            f" {p['demanda_max'][i]:>8,.0f}"
+            f" {p['margem'][i]/p['custo'][i]:>8.2f}"
+            f" {p['margem'][i]/p['mao_obra'][i]:>6.0f}"
+            for i in range(4)
+        )
+    )
     subtitulo("Funcao Objetivo")
     corpo("Maximizar Z = 3500*x1 + 2300*x2 + 4200*x3 + 3400*x4")
     subtitulo("Restricoes")
@@ -368,9 +384,9 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
     pdf.output(buf)
     return buf.getvalue()
 
-st.set_page_config(page_title="Tutorial — Entendendo o Exercício", page_icon="📚", layout="wide")
-st.title("Tutorial — Entendendo o Exercício")
-st.caption("Guia para quem está vendo Programação Linear pela primeira vez")
+st.set_page_config(page_title="Exercício Resolvido — AgroPrime LP", page_icon="📚", layout="wide")
+st.title("Exercício Resolvido — AgroPrime LP")
+st.caption("Modelagem, resolução computacional e manual do problema de otimização da Cooperativa AgroPrime")
 
 # ── Dados do exercício ──────────────────────────────────────────────────────
 res = resolver()
@@ -666,7 +682,22 @@ st.divider()
 # ── 3. O modelo ─────────────────────────────────────────────────────────────
 st.header("3. Como montamos o modelo")
 
-tab1, tab2, tab3 = st.tabs(["Variáveis", "Função Objetivo", "Restrições"])
+tab0, tab1, tab2, tab3 = st.tabs(["Parâmetros", "Variáveis", "Função Objetivo", "Restrições"])
+
+with tab0:
+    st.markdown("Dados de entrada de cada cultura — de onde vêm os coeficientes do modelo:")
+    df_params = pd.DataFrame({
+        "Cultura":           CULTURAS,
+        "Margem (R$/ha)":    p["margem"],
+        "Custo (R$/ha)":     p["custo"],
+        "Água (m³/ha)":      p["agua"],
+        "MO (hh/ha)":        p["mao_obra"],
+        "Demanda máx. (ha)": p["demanda_max"],
+        "Margem/Custo":      [round(p["margem"][i] / p["custo"][i], 2) for i in range(4)],
+        "Margem/MO":         [round(p["margem"][i] / p["mao_obra"][i], 2) for i in range(4)],
+    })
+    st.dataframe(df_params, use_container_width=True, hide_index=True)
+    st.caption("Margem/Custo e Margem/MO indicam eficiência por recurso escasso — explicam por que Cana e Soja dominam a alocação.")
 
 with tab1:
     st.markdown("""
