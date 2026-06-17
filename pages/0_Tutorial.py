@@ -276,7 +276,8 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
     y0 = pdf.get_y()
     pdf.image(buf_bar, x=10,  y=y0, w=90)
     pdf.image(buf_pie, x=105, y=y0, w=90)
-    pdf.ln(68)
+    # pie figsize=(6,4) → h = 90*(4/6) ≈ 60mm; posiciona cartesiano 65mm abaixo de y0
+    pdf.set_y(y0 + 65)
     pdf.image(buf_cart, x=10, w=190)
     pdf.ln(4)
     linha()
