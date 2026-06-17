@@ -3,6 +3,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import streamlit as st
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 from io import BytesIO
 from fpdf import FPDF
 from core.fmt import br
@@ -680,9 +683,43 @@ st.divider()
 st.header("Exercício Resolvido")
 st.caption("Método gráfico + cálculo completo passo a passo")
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+# ── Gráficos de resultado ─────────────────────────────────────────────────────
+col_g1, col_g2 = st.columns(2)
+
+with col_g1:
+    st.subheader("Alocação Ótima de Hectares")
+    fig_bar, ax_bar = plt.subplots(figsize=(6, 4), facecolor="#0A1A0D")
+    ax_bar.set_facecolor("#1A2E1D")
+    colors_bar = ["#52B788", "#95D5B2", "#2D6A4F", "#F4D03F"]
+    bars = ax_bar.bar(CULTURAS, qtds, color=colors_bar, edgecolor="#0A1A0D", linewidth=0.5)
+    for bar, q in zip(bars, qtds):
+        ax_bar.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 10,
+                    f"{br(q)}", ha="center", va="bottom", color="white", fontsize=10)
+    ax_bar.set_ylabel("Hectares", color="white")
+    ax_bar.tick_params(colors="white", labelsize=9)
+    ax_bar.set_title("Hectares por Cultura", color="white", fontsize=12)
+    for sp in ax_bar.spines.values():
+        sp.set_edgecolor("#2D6A4F")
+    plt.tight_layout()
+    st.pyplot(fig_bar)
+    plt.close(fig_bar)
+
+with col_g2:
+    st.subheader("Participação na Receita")
+    fig_pie, ax_pie = plt.subplots(figsize=(6, 4), facecolor="#0A1A0D")
+    wedges, texts, autotexts = ax_pie.pie(
+        receitas, labels=CULTURAS, autopct="%1.1f%%",
+        colors=["#52B788", "#95D5B2", "#2D6A4F", "#F4D03F"],
+        textprops={"color": "white", "fontsize": 10},
+        pctdistance=0.75, wedgeprops={"edgecolor": "#0A1A0D", "linewidth": 1.5}
+    )
+    for at in autotexts:
+        at.set_color("white"); at.set_fontsize(9)
+    ax_pie.set_facecolor("#0A1A0D")
+    ax_pie.set_title("Participação na Receita Total", color="white", fontsize=12)
+    plt.tight_layout()
+    st.pyplot(fig_pie)
+    plt.close(fig_pie)
 
 # ── Gráfico cartesiano ───────────────────────────────────────────────────────
 st.subheader("Método Gráfico — Região Viável e Ponto Ótimo")
@@ -826,8 +863,126 @@ Ampliar qualquer um desses recursos permitiria aumentar o lucro além de R$ {br(
 
 st.divider()
 
-# ── 7. Limitações do modelo ──────────────────────────────────────────────────
-st.header("7. Limitações do modelo")
+# ── 7. Resolução Manual — Passo a Passo ─────────────────────────────────────
+st.header("7. Resolução Manual — Passo a Passo")
+
+st.markdown("""
+Em PL, a solução ótima **sempre ocorre em um vértice** da região viável — onde um conjunto de
+restrições está ativo (folga zero) simultaneamente. Com 4 variáveis precisamos de 4 restrições
+ativas para identificar o vértice ótimo.
+""")
+
+st.subheader("Passo 1 — Identificar restrições ativas")
+
+st.markdown("""
+Analise o uso de cada recurso na solução ótima (obtida pelo solver):
+""")
+
+uso = res["uso"]
+labels_uso = {"terra": "Terra", "orcamento": "Orçamento", "agua": "Água", "mao_obra": "Mão de Obra"}
+unids_uso  = {"terra": "ha", "orcamento": "R$", "agua": "m³", "mao_obra": "hh"}
+for key, (usado, total, unit) in uso.items():
+    pct   = usado / total * 100
+    ativo = pct >= 99.9
+    icone = "**ATIVA** (folga zero)" if ativo else f"com folga ({br(total - usado)} {unit} sobrando)"
+    st.markdown(f"- **{labels_uso[key]}**: {br(usado)} / {br(total)} {unit} → {icone}")
+
+st.info("""
+**Restrições ativas identificadas:**
+- R2 — Orçamento (100% consumido)
+- R4 — Mão de Obra (100% consumida)
+- R5 — Demanda Soja: x₁ = 2.500 ha (no limite)
+- R5 — Demanda Cana: x₄ = 1.000 ha (no limite)
+""")
+
+st.subheader("Passo 2 — Fixar variáveis nos limites de demanda")
+
+st.markdown("""
+Soja e Cana atingiram seus limites máximos de demanda → **valores fixados**:
+x₁ = 2.500 ha · x₄ = 1.000 ha
+
+Substituindo nas restrições ativas para obter sistema 2×2:
+""")
+
+st.latex(r"""
+\text{R2 (Orçamento):} \quad
+4.500(2.500) + 3.200\,x_2 + 6.000\,x_3 + 2.800(1.000) = 20.000.000
+""")
+st.latex(r"""
+\boxed{3.200\,x_2 + 6.000\,x_3 = 5.950.000} \quad \text{...(I)}
+""")
+st.latex(r"""
+\text{R4 (Mão de Obra):} \quad
+12(2.500) + 15\,x_2 + 22\,x_3 + 8(1.000) = 60.000
+""")
+st.latex(r"""
+\boxed{15\,x_2 + 22\,x_3 = 22.000} \quad \text{...(II)}
+""")
+
+st.subheader("Passo 3 — Resolver o sistema 2×2 por substituição")
+
+st.markdown("**Isolar x₂ em (II) e substituir em (I):**")
+
+st.latex(r"""
+x_2 = \frac{22.000 - 22\,x_3}{15} \quad \text{...(III)}
+""")
+st.latex(r"""
+3.200 \cdot \frac{22.000 - 22\,x_3}{15} + 6.000\,x_3 = 5.950.000
+""")
+st.latex(r"""
+4.693.333{,}33 - 4.693{,}33\,x_3 + 6.000\,x_3 = 5.950.000
+\quad \Rightarrow \quad 1.306{,}67\,x_3 = 1.256.666{,}67
+""")
+st.latex(r"""
+\boxed{x_3 \approx 961{,}73 \text{ ha (Algodão)}}
+\qquad
+\boxed{x_2 \approx 56{,}12 \text{ ha (Milho)}}
+""")
+
+st.subheader("Passo 4 — Calcular Z*")
+
+x1r, x2r, x3r, x4r = 2500, 56.12, 961.73, 1000
+p1m = 3500 * x1r; p2m = 2300 * x2r; p3m = 4200 * x3r; p4m = 3400 * x4r
+z_manual = p1m + p2m + p3m + p4m
+
+st.code(f"""
+Z* = 3.500 × {br(x1r, 4)}  +  2.300 × {br(x2r, 4)}  +  4.200 × {br(x3r, 4)}  +  3.400 × {br(x4r, 4)}
+Z* = {br(p1m, 0)}  +  {br(p2m, 0)}  +  {br(p3m, 0)}  +  {br(p4m, 0)}
+Z* ≈ R$ {br(z_manual, 0)}
+""", language=None)
+
+st.success(f"""
+**Z\\* ≈ R$ {br(z_manual, 0)}** — equivalente ao ótimo do solver (diferença de R$ {br(lucro - z_manual, 0)} por arredondamento nos valores intermediários de x₂ e x₃).
+
+A solução completa é: x₁ = 2.500 ha (Soja) | x₂ ≈ 56,12 ha (Milho) | x₃ ≈ 961,73 ha (Algodão) | x₄ = 1.000 ha (Cana)
+""")
+
+st.subheader("Passo 5 — Verificar as demais restrições")
+
+st.markdown("Confirmar que a solução encontrada **respeita todas as restrições**:")
+
+r_terra_m = x1r + x2r + x3r + x4r
+r_agua_m  = 600*x1r + 800*x2r + 500*x3r + 1500*x4r
+
+st.code(f"""
+R1 Terra:      {br(x1r, 4)} + {br(x2r, 4)} + {br(x3r, 4)} + {br(x4r, 4)} = {br(r_terra_m)} ha  ≤  5.000,00 ha  ✓
+
+R2 Orçamento:  4.500×{br(x1r, 0)} + 3.200×{br(x2r, 4)} + 6.000×{br(x3r, 4)} + 2.800×{br(x4r, 0)}
+             ≈ R$ 20.000.000,00  ≤  R$ 20.000.000,00  ✓  ★ ATIVA
+
+R3 Água:       600×{br(x1r, 0)} + 800×{br(x2r, 4)} + 500×{br(x3r, 4)} + 1.500×{br(x4r, 0)}
+             ≈ {br(r_agua_m, 0)} m³  ≤  4.000.000,00 m³  ✓
+
+R4 Mão de Obra: 12×{br(x1r, 0)} + 15×{br(x2r, 4)} + 22×{br(x3r, 4)} + 8×{br(x4r, 0)}
+              ≈ 60.000,00 hh  ≤  60.000,00 hh  ✓  ★ ATIVA
+
+R5 Demanda:    x₁={br(x1r, 0)}≤2.500  x₂={br(x2r, 4)}≤2.000  x₃={br(x3r, 4)}≤1.500  x₄={br(x4r, 0)}≤1.000  ✓
+""", language=None)
+
+st.divider()
+
+# ── 8. Limitações do modelo ──────────────────────────────────────────────────
+st.header("8. Limitações do modelo")
 
 st.markdown("""
 Todo modelo matemático é uma **simplificação da realidade**. Este modelo de LP assume condições

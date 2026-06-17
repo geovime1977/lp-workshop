@@ -413,9 +413,11 @@ def gerar_pptx(resultado: dict) -> bytes:
     _header(s, "Dados das Culturas — Parâmetros do Modelo",
             "Coeficientes utilizados na Programação Linear")
 
-    headers = ["Cultura", "Margem\n(R$/ha)", "Custo Insumos\n(R$/ha)",
-               "Água\n(m³/ha)", "MO\n(hh/ha)", "Demanda\nMáx (ha)"]
-    col_ws = [Inches(2.5), Inches(1.7), Inches(2.2), Inches(1.5), Inches(1.5), Inches(1.8)]
+    headers = ["Cultura", "Margem\n(R$/ha)", "Custo\n(R$/ha)",
+               "Água\n(m³/ha)", "MO\n(hh/ha)", "Demanda\nMáx (ha)",
+               "Margem/\nCusto", "Margem/\nMO"]
+    col_ws = [Inches(2.0), Inches(1.5), Inches(1.6), Inches(1.2),
+              Inches(1.0), Inches(1.4), Inches(1.4), Inches(1.4)]
     col_xs = [M]
     for w in col_ws[:-1]:
         col_xs.append(col_xs[-1] + w)
@@ -424,9 +426,9 @@ def gerar_pptx(resultado: dict) -> bytes:
     top0  = Inches(1.25)
 
     for j, (hdr, cx, cw) in enumerate(zip(headers, col_xs, col_ws)):
-        _rect(s, cx, top0, cw - Inches(0.04), row_h, VERDE)
-        _txt(s, cx + Inches(0.06), top0 + Inches(0.05), cw - Inches(0.1), row_h,
-             hdr, size=12, bold=True, color=AMARELO)
+        _rect(s, cx, top0, cw - Inches(0.03), row_h, VERDE)
+        _txt(s, cx + Inches(0.05), top0 + Inches(0.04), cw - Inches(0.08), row_h,
+             hdr, size=11, bold=True, color=AMARELO)
 
     rows = [
         [culturas[i],
@@ -434,23 +436,27 @@ def gerar_pptx(resultado: dict) -> bytes:
          f"R$ {br(params['custo'][i], 0)}",
          f"{br(params['agua'][i], 0)}",
          f"{params['mao_obra'][i]}",
-         f"{br(params['demanda_max'][i], 0)}"]
+         f"{br(params['demanda_max'][i], 0)}",
+         f"{params['margem'][i]/params['custo'][i]:.2f}".replace(".", ","),
+         f"{params['margem'][i]/params['mao_obra'][i]:.0f}"]
         for i in range(4)
     ]
     bgs = [CINZA_ESCURO, RGBColor(0x0F, 0x22, 0x14)] * 2
     for i, row in enumerate(rows):
         for j, (cell, cx, cw) in enumerate(zip(row, col_xs, col_ws)):
-            _rect(s, cx, top0 + row_h * (i + 1), cw - Inches(0.04), row_h, bgs[i])
+            _rect(s, cx, top0 + row_h * (i + 1), cw - Inches(0.03), row_h, bgs[i])
             bold = j == 0
-            clr  = VERDE_CLARO if j == 1 else BRANCO
-            _txt(s, cx + Inches(0.06), top0 + row_h * (i + 1) + Inches(0.1),
-                 cw - Inches(0.1), row_h, cell, size=14, bold=bold, color=clr)
+            clr  = VERDE_CLARO if j == 1 else (AMARELO if j >= 6 else BRANCO)
+            _txt(s, cx + Inches(0.05), top0 + row_h * (i + 1) + Inches(0.1),
+                 cw - Inches(0.08), row_h, cell, size=13, bold=bold, color=clr)
 
     _rect(s, 0, Inches(6.35), W, Inches(0.6), CINZA_ESCURO)
     _txt(s, M, Inches(6.42), CW, Inches(0.5),
-         "Maior margem: Algodão (R$ 4.200/ha)  |  Menor custo: Cana (R$ 2.800/ha)  |  "
-         "Maior consumo de água: Cana (1.500 m³/ha)",
-         size=13, color=AMARELO, align=PP_ALIGN.CENTER)
+         "4 variáveis → 4 restrições ativas no vértice ótimo  |  "
+         "Cana: melhor Margem/Custo (1,21) e Margem/MO (425) → limite de demanda (R5)  |  "
+         "Soja: 2º melhor Margem/MO (291) → limite de demanda (R5)  |  "
+         "Orçamento (R2) e Mão de Obra (R4) consumidos 100% → gargalos",
+         size=12, color=AMARELO, align=PP_ALIGN.CENTER)
 
     # ── S5 Modelagem – Variáveis e FO ─────────────────────────────────
     s = _slide(prs)
