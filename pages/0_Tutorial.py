@@ -170,7 +170,8 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
 
     culturas_nomes4 = ["Soja", "Milho", "Algodao", "Cana"]
 
-    fig_bar, ax_bar = plt.subplots(figsize=(8, 3.5), facecolor="#0A1A0D")
+    # ambos com mesma altura (4) para ficarem alinhados lado a lado no PDF
+    fig_bar, ax_bar = plt.subplots(figsize=(7, 5), facecolor="#0A1A0D")
     ax_bar.set_facecolor("#1A2E1D")
     bars = ax_bar.bar(culturas_nomes4, qtds,
                       color=["#52B788", "#95D5B2", "#2D6A4F", "#F4D03F"],
@@ -187,18 +188,18 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
     buf_bar = _fig_bytes(fig_bar)
     plt.close(fig_bar)
 
-    fig_pie, ax_pie = plt.subplots(figsize=(6, 4), facecolor="#0A1A0D")
+    fig_pie, ax_pie = plt.subplots(figsize=(5, 4), facecolor="#0A1A0D")
     ax_pie.set_facecolor("#0A1A0D")
-    wedges, texts, autotexts = ax_pie.pie(
-        receitas, labels=culturas_nomes4, autopct="%1.1f%%",
+    wedges, texts = ax_pie.pie(
+        receitas,
+        labels=[f"{c}\n{r/sum(receitas)*100:.1f}%" for c, r in zip(culturas_nomes4, receitas)],
         colors=["#52B788", "#95D5B2", "#2D6A4F", "#F4D03F"],
-        textprops={"color": "white", "fontsize": 10},
-        pctdistance=0.75, wedgeprops={"edgecolor": "#0A1A0D", "linewidth": 1.5}
+        textprops={"color": "white", "fontsize": 8},
+        wedgeprops={"edgecolor": "#0A1A0D", "linewidth": 1.5},
+        labeldistance=1.08,
     )
-    for at in autotexts:
-        at.set_color("white"); at.set_fontsize(9)
-    ax_pie.set_title("Participacao na Receita Total", color="white", fontsize=11)
-    plt.tight_layout()
+    ax_pie.set_title("Participacao na Receita Total", color="white", fontsize=10)
+    fig_pie.subplots_adjust(left=0.05, right=0.95, top=0.90, bottom=0.05)
     buf_pie = _fig_bytes(fig_pie)
     plt.close(fig_pie)
 
@@ -270,14 +271,15 @@ def _gerar_pdf(qtds, receitas, lucro, cond_orig, cond_norm, p) -> bytes:
     buf_cart = _fig_bytes(fig_cart)
     plt.close(fig_cart)
 
-    if pdf.get_y() > 50:
+    if pdf.get_y() > 30:
         pdf.add_page()
     titulo("7. Exercicio Resolvido - Calculo Passo a Passo")
     y0 = pdf.get_y()
+    # bar figsize=(7,4) w=90 → h≈51mm | pie figsize=(5,4) w=80 → h=64mm
+    # x_pie=101+80=181mm < 190mm margem útil
     pdf.image(buf_bar, x=10,  y=y0, w=90)
-    pdf.image(buf_pie, x=105, y=y0, w=90)
-    # pie figsize=(6,4) → h = 90*(4/6) ≈ 60mm; posiciona cartesiano 65mm abaixo de y0
-    pdf.set_y(y0 + 65)
+    pdf.image(buf_pie, x=101, y=y0, w=80)
+    pdf.set_y(y0 + 68)
     pdf.image(buf_cart, x=10, w=190)
     pdf.ln(4)
     linha()
